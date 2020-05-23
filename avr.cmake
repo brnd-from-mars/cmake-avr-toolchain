@@ -229,3 +229,38 @@ function(avr_add_executable EXEC_NAME)
 
     message(STATUS "Adding executable ${EXEC_NAME} done")
 endfunction(avr_add_executable)
+
+
+###############################################################################
+# avr_add_library
+###############################################################################
+function(avr_add_library LIB_NAME)
+    if(NOT ARGN)
+        message(FATAL_ERROR "Source files not given for ${LIB_NAME}")
+    endif(NOT ARGN)
+
+    set(LIB_FILE ${LIB_NAME})
+
+    add_library(${LIB_NAME} STATIC ${ARGN})
+    set_target_properties(
+            ${LIB_FILE}
+            PROPERTIES
+            COMPILE_FLAGS "-mmcu=${AVR_MCU}"
+            OUTPUT_NAME "${LIB_FILE}"
+    )
+
+    if(NOT TARGET ${LIB_NAME})
+        add_custom_target(
+                ${LIB_NAME}
+                ALL
+                DEPENDS ${LIB_FILE}
+        )
+        set_target_properties(
+                ${LIB_NAME}
+                PROPERTIES
+                OUTPUT_NAME "${LIB_FILE}"
+        )
+    endif(NOT TARGET ${LIB_NAME})
+
+    message(STATUS "Adding library ${LIB_NAME} done")
+endfunction(avr_add_library)
