@@ -302,6 +302,8 @@ function(avr_target_include_directories EXEC_TARGET)
     get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
 
     target_include_directories(${TARGET_LIST} ${ARGN})
+
+    message(STATUS "Including directories for ${EXEC_TARGET} done")
 endfunction(avr_target_include_directories)
 
 
@@ -316,4 +318,6 @@ function(avr_target_compile_definitions EXEC_TARGET)
     get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
 
     target_compile_definitions(${TARGET_LIST} ${ARGN})
+
+    message(STATUS "Setting up target compile definitions for ${EXEC_TARGET} done")
 endfunction(avr_target_compile_definitions)
