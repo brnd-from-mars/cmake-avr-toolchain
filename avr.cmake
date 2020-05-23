@@ -41,3 +41,12 @@ if(NOT AVRDUDE)
 endif(NOT AVRDUDE)
 
 message(STATUS "AVR toolchain executables search done")
+
+
+###############################################################################
+# environment setup
+###############################################################################
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR avr)
+set(CMAKE_C_COMPILER ${AVR_GCC})
+set(CMAKE_CXX_COMPILER ${AVR_GXX})
