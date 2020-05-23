@@ -52,15 +52,9 @@ if(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
         message(FATAL_ERROR "Upload port not specified")
     endif(NOT AVR_PORT)
     if(NOT AVR_BAUDRATE)
-        message(FATAL_ERROR "Upload baudrate not specified")
+        st(FATAL_ERROR "Upload baudrate not specified")
     endif(NOT AVR_BAUDRATE)
 endif(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
-
-if(AVR_BAUDRATE MATCHES auto)
-    set(AVR_UPLOAD_OPTIONS -p ${AVR_MCU} -c ${AVR_PROGRAMMER})
-else(AVR_BAUDRATE MATCHES auto)
-    set(AVR_UPLOAD_OPTIONS -p ${AVR_MCU} -c ${AVR_PROGRAMMER} -b ${AVR_BAUDRATE})
-endif(AVR_BAUDRATE MATCHES auto)
 
 if(APPLE)
     set(AVR_SIZE_OPTIONS -B)
@@ -85,10 +79,53 @@ message(STATUS "CMake system setup done")
 ###############################################################################
 # check build type
 ###############################################################################
-if(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
+if(NOT ${PROJECT_NAME} MATCHES CMAKE_TRY_COMPILE)
     if(NOT CMAKE_BUILD_TYPE MATCHES Release)
         message(FATAL_ERROR "Build type doesn't match release")
     endif(NOT CMAKE_BUILD_TYPE MATCHES Release)
-endif(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
+endif(NOT ${PROJECT_NAME} MATCHES CMAKE_TRY_COMPILE)
 
 message(STATUS "CMake build type check done")
+
+
+###############################################################################
+# avr_generate_fixed_targets
+###############################################################################
+function(avr_generate_fixed_targets)
+    add_custom_target(
+            get_status
+            ${AVRDUDE}
+                -p${AVR_MCU}
+                -c${AVR_PROGRAMMER}
+                -P${AVR_PORT}
+                "$<$<NOT:$<STREQUAL:${AVR_BAUDRATE},auto>>:-b${AVR_BAUDRATE}>"
+                -n
+                -v
+            COMMENT "Get status from ${AVR_MCU}"
+    )
+    add_custom_target(
+            get_fuses
+            ${AVRDUDE}
+                -p${AVR_MCU}
+                -c${AVR_PROGRAMMER}
+                -P${AVR_PORT}
+                "$<$<NOT:$<STREQUAL:${AVR_BAUDRATE},auto>>:-b${AVR_BAUDRATE}>"
+                "$<$<BOOL:${AVR_LFUSE}>:-Ulfuse:r:-:b>"
+                "$<$<BOOL:${AVR_HFUSE}>:-Uhfuse:r:-:b>"
+                "$<$<BOOL:${AVR_EFUSE}>:-Uefuse:r:-:b>"
+            COMMENT "Get fuses from ${AVR_MCU}"
+    )
+    add_custom_target(
+            set_fuses
+            ${AVRDUDE}
+                -p${AVR_MCU}
+                -c${AVR_PROGRAMMER}
+                -P${AVR_PORT}
+                "$<$<NOT:$<STREQUAL:${AVR_BAUDRATE},auto>>:-b${AVR_BAUDRATE}>"
+                "$<$<BOOL:${AVR_LFUSE}>:-Ulfuse:w:${AVR_LFUSE}:m>"
+                "$<$<BOOL:${AVR_HFUSE}>:-Uhfuse:w:${AVR_HFUSE}:m>"
+                "$<$<BOOL:${AVR_EFUSE}>:-Uefuse:w:${AVR_EFUSE}:m>"
+            COMMENT "Set fuses on ${AVR_MCU}"
+    )
+    message(STATUS "Adding fixed targets done")
+endfunction(avr_generate_fixed_targets)
