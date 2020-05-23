@@ -103,6 +103,7 @@ function(avr_generate_fixed_targets)
                 -v
             COMMENT "Get status from ${AVR_MCU}"
     )
+
     add_custom_target(
             get_fuses
             ${AVRDUDE}
@@ -115,6 +116,7 @@ function(avr_generate_fixed_targets)
                 "$<$<BOOL:${AVR_EFUSE}>:-Uefuse:r:-:b>"
             COMMENT "Get fuses from ${AVR_MCU}"
     )
+
     add_custom_target(
             set_fuses
             ${AVRDUDE}
@@ -127,5 +129,103 @@ function(avr_generate_fixed_targets)
                 "$<$<BOOL:${AVR_EFUSE}>:-Uefuse:w:${AVR_EFUSE}:m>"
             COMMENT "Set fuses on ${AVR_MCU}"
     )
+
     message(STATUS "Adding fixed targets done")
 endfunction(avr_generate_fixed_targets)
+
+
+###############################################################################
+# avr_add_executable
+###############################################################################
+function(avr_add_executable EXEC_NAME)
+    if(NOT ARGN)
+        message(FATAL_ERROR "Source files not given for ${EXEC_NAME}")
+    endif(NOT ARGN)
+
+    set(ELF_FILE ${EXEC_NAME}.elf)
+    set(HEX_FILE ${EXEC_NAME}.hex)
+    set(LST_FILE ${EXEC_NAME}.lst)
+    set(MAP_FILE ${EXEC_NAME}.map)
+    set(EEPROM_IMG ${EXEC_NAME}-eeprom.hex)
+
+    add_executable(${ELF_FILE} EXCLUDE_FROM_ALL ${ARGN})
+    set_target_properties(
+            ${ELF_FILE}
+            PROPERTIES
+            COMPILE_FLAGS "-mmcu=${AVR_MCU}"
+            LINK_FLAGS "-mmcu=${AVR_MCU} -Wl,--gc-sections -mrelax -Wl,-Map,${MAP_FILE}"
+    )
+
+    add_custom_command(
+            OUTPUT ${HEX_FILE}
+            COMMAND
+                ${AVR_OBJCOPY} -j .text -j .data -O ihex ${ELF_FILE} ${HEX_FILE}
+            COMMAND
+                ${AVR_SIZE} ${AVR_SIZE_OPTIONS} ${ELF_FILE}
+            DEPENDS ${ELF_FILE}
+    )
+
+    add_custom_command(
+            OUTPUT ${LST_FILE}
+            COMMAND
+                ${AVR_OBJDUMP} -d ${ELF_FILE} > ${LST_FILE}
+            DEPENDS ${ELF_FILE}
+    )
+
+    add_custom_command(
+            OUTPUT ${EEPROM_IMG}
+            COMMAND
+                ${AVR_OBJCOPY} -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0
+                --no-change-warnings -O ihex ${ELF_FILE} ${EEPROM_IMG}
+            DEPENDS ${ELF_FILE}
+    )
+
+    add_custom_target(
+            ${EXEC_NAME}
+            ALL
+            DEPENDS ${HEX_FILE} ${LST_FILE} ${EEPROM_IMG}
+    )
+    set_target_properties(
+            ${EXEC_NAME}
+            PROPERTIES
+            OUTPUT_NAME "${ELF_FILE}"
+    )
+    
+    get_directory_property(CLEAN_FILES ADDITIONAL_MAKE_CLEAN_FILES)
+    set_directory_properties(
+            PROPERTIES
+            ADDITIONAL_MAKE_CLEAN_FILES "${MAP_FILE}"
+    )
+
+    add_custom_target(
+            ${EXEC_NAME}_upload
+            ${AVRDUDE}
+                -p${AVR_MCU}
+                -c${AVR_PROGRAMMER}
+                -P${AVR_PORT}
+                "$<$<NOT:$<STREQUAL:${AVR_BAUDRATE},auto>>:-b${AVR_BAUDRATE}>"
+                -Uflash:w:${HEX_FILE}:i
+            DEPENDS ${HEX_FILE}
+            COMMENT "Uploading ${HEX_FILE} to ${AVR_MCU} using ${AVR_PROGRAMMER}"
+    )
+
+    add_custom_target(
+            ${EXEC_NAME}_eeprom_upload
+            ${AVRDUDE}
+                -p${AVR_MCU}
+                -c${AVR_PROGRAMMER}
+                -P${AVR_PORT}
+                "$<$<NOT:$<STREQUAL:${AVR_BAUDRATE},auto>>:-b${AVR_BAUDRATE}>"
+                -Ueeprom:w:${EEPROM_IMG}:i
+            DEPENDS ${EEPROM_IMG}
+            COMMENT "Uploading ${EEPROM_IMG} to ${AVR_MCU} using ${AVR_PROGRAMMER}"
+    )
+
+    add_custom_target(
+            ${EXEC_NAME}_disassemble
+            ${AVR_OBJDUMP} -h -S ${ELF_FILE} > ${EXEC_NAME}.lst
+            DEPENDS ${ELF_FILE}
+    )
+
+    message(STATUS "Adding executable ${EXEC_NAME} done")
+endfunction(avr_add_executable)
