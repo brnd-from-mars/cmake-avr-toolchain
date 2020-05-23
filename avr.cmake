@@ -289,3 +289,17 @@ function(avr_target_link_libraries EXEC_TARGET)
 
     message(STATUS "Linking ${EXEC_TARGET} against libraries done")
 endfunction(avr_target_link_libraries)
+
+
+###############################################################################
+# avr_target_include_directories
+###############################################################################
+function(avr_target_include_directories EXEC_TARGET)
+    if(NOT ARGN)
+        message(FATAL_ERROR "Include directories not given for ${EXEC_NAME}")
+    endif()
+
+    get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
+
+    target_include_directories(${TARGET_LIST} ${ARGN})
+endfunction(avr_target_include_directories)
