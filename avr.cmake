@@ -303,3 +303,17 @@ function(avr_target_include_directories EXEC_TARGET)
 
     target_include_directories(${TARGET_LIST} ${ARGN})
 endfunction(avr_target_include_directories)
+
+
+###############################################################################
+# avr_target_compile_definitions
+###############################################################################
+function(avr_target_compile_definitions EXEC_TARGET)
+    if(NOT ARGN)
+        message(FATAL_ERROR "Compile definitions not given for ${EXEC_NAME}")
+    endif()
+
+    get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
+
+    target_compile_definitions(${TARGET_LIST} ${ARGN})
+endfunction(avr_target_compile_definitions)
