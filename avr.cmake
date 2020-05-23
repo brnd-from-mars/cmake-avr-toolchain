@@ -264,3 +264,28 @@ function(avr_add_library LIB_NAME)
 
     message(STATUS "Adding library ${LIB_NAME} done")
 endfunction(avr_add_library)
+
+
+###############################################################################
+# avr_target_link_libraries
+###############################################################################
+function(avr_target_link_libraries EXEC_TARGET)
+    if(NOT ARGN)
+        message(FATAL_ERROR "Link targets not given for ${EXEC_NAME}")
+    endif(NOT ARGN)
+
+    get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
+
+    foreach(TGT ${ARGN})
+        if(TARGET ${TGT})
+            get_target_property(ARG_NAME ${TGT} OUTPUT_NAME)
+            list(APPEND NON_TARGET_LIST ${ARG_NAME})
+        else(TARGET ${TGT})
+            list(APPEND NON_TARGET_LIST ${TGT})
+        endif(TARGET ${TGT})
+    endforeach(TGT ${ARGN})
+
+    target_link_libraries(${TARGET_LIST} ${NON_TARGET_LIST})
+
+    message(STATUS "Linking ${EXEC_TARGET} against libraries done")
+endfunction(avr_target_link_libraries)
