@@ -19,23 +19,18 @@ find_program(AVRDUDE avrdude)
 if(NOT AVR_GCC)
     message(FATAL_ERROR "Program avr-gcc not found")
 endif(NOT AVR_GCC)
-
 if(NOT AVR_GXX)
     message(FATAL_ERROR "Program avr-g++ not found")
 endif(NOT AVR_GXX)
-
 if(NOT AVR_SIZE)
     message(FATAL_ERROR "Program avr-size not found")
 endif(NOT AVR_SIZE)
-
 if(NOT AVR_OBJCOPY)
     message(FATAL_ERROR "Program avr-objcopy not found")
 endif(NOT AVR_OBJCOPY)
-
 if(NOT AVR_OBJDUMP)
     message(FATAL_ERROR "Program avr-objdump not found")
 endif(NOT AVR_OBJDUMP)
-
 if(NOT AVRDUDE)
     message(FATAL_ERROR "Program avrdude not found")
 endif(NOT AVRDUDE)
@@ -50,3 +45,24 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR avr)
 set(CMAKE_C_COMPILER ${AVR_GCC})
 set(CMAKE_CXX_COMPILER ${AVR_GXX})
+
+
+###############################################################################
+# check upload settings
+###############################################################################
+if (NOT ${PROJECT_NAME} MATCHES "CMAKE_TRY_COMPILE")
+    if (NOT AVR_MCU)
+        message(FATAL_ERROR "MCU type not specified")
+    endif(NOT AVR_MCU)
+    if (NOT AVR_PROGRAMMER)
+        message(FATAL_ERROR "Programmer not specified")
+    endif(NOT AVR_PROGRAMMER)
+    if (NOT AVR_PORT)
+        message(FATAL_ERROR "Upload port not specified")
+    endif(NOT AVR_PORT)
+    if (NOT AVR_BAUDRATE)
+        message(FATAL_ERROR "Upload baudrate not specified")
+    endif(NOT AVR_BAUDRATE)
+endif(NOT ${PROJECT_NAME} MATCHES "CMAKE_TRY_COMPILE")
+
+message(STATUS "AVR upload settings check done")
