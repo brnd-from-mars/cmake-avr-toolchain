@@ -271,7 +271,7 @@ endfunction(avr_add_library)
 ###############################################################################
 function(avr_target_link_libraries EXEC_TARGET)
     if(NOT ARGN)
-        message(FATAL_ERROR "Link targets not given for ${EXEC_NAME}")
+        message(FATAL_ERROR "Link targets not given for ${EXEC_TARGET}")
     endif(NOT ARGN)
 
     get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
@@ -287,7 +287,7 @@ function(avr_target_link_libraries EXEC_TARGET)
 
     target_link_libraries(${TARGET_LIST} ${NON_TARGET_LIST})
 
-    message(STATUS "Linking ${EXEC_TARGET} against libraries done")
+    message(STATUS "Linking ${EXEC_TARGET} against libraries (${ARGN}) done")
 endfunction(avr_target_link_libraries)
 
 
@@ -296,7 +296,7 @@ endfunction(avr_target_link_libraries)
 ###############################################################################
 function(avr_target_include_directories EXEC_TARGET)
     if(NOT ARGN)
-        message(FATAL_ERROR "Include directories not given for ${EXEC_NAME}")
+        message(FATAL_ERROR "Include directories not given for ${EXEC_TARGET}")
     endif()
 
     get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
@@ -312,7 +312,7 @@ endfunction(avr_target_include_directories)
 ###############################################################################
 function(avr_target_compile_definitions EXEC_TARGET)
     if(NOT ARGN)
-        message(FATAL_ERROR "Compile definitions not given for ${EXEC_NAME}")
+        message(FATAL_ERROR "Compile definitions not given for ${EXEC_TARGET}")
     endif()
 
     get_target_property(TARGET_LIST ${EXEC_TARGET} OUTPUT_NAME)
