@@ -39,7 +39,7 @@ message(STATUS "AVR toolchain executables search done")
 
 
 ###############################################################################
-# check upload settings
+# check compilation and upload settings
 ###############################################################################
 if(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
     if(NOT AVR_MCU)
@@ -54,6 +54,9 @@ if(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
     if(NOT AVR_BAUDRATE)
         st(FATAL_ERROR "Upload baudrate not specified")
     endif(NOT AVR_BAUDRATE)
+    if(NOT AVR_FREQ)
+        st(FATAL_ERROR "MCU frequency not specified")
+    endif(NOT AVR_FREQ)
 endif(NOT PROJECT_NAME MATCHES CMAKE_TRY_COMPILE)
 
 if(APPLE)
@@ -62,7 +65,21 @@ else(APPLE)
     set(AVR_SIZE_OPTIONS -C;--mcu=${AVR_MCU})
 endif(APPLE)
 
-message(STATUS "AVR upload settings check done")
+add_definitions("-DF_CPU=${AVR_FREQ}")
+add_definitions("-Wall")
+add_definitions("-Werror")
+add_definitions("-pedantic")
+add_definitions("-pedantic-errors")
+add_definitions("-funsigned-char")
+add_definitions("-funsigned-bitfields")
+add_definitions("-ffunction-sections")
+add_definitions("-c")
+add_definitions("-std=gnu99")
+
+set(CMAKE_C_FLAGS_RELEASE "-Os")
+set(CMAKE_CXX_FLAGS_RELEASE "-Os")
+
+message(STATUS "AVR compilation and upload settings check done")
 
 
 ###############################################################################
